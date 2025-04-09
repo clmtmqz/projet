@@ -22,7 +22,7 @@ var Esri_WorldShadedRelief = L.tileLayer('https://server.arcgisonline.com/ArcGIS
 var myMap = L.map('map', {
     center: [47, 1],
     zoom: 5,
-    layers: [Esri_WorldShadedRelief, CartoDB_PositronOnlyLabels]
+    layers: [Stadia_StamenTerrainBackground, CartoDB_PositronOnlyLabels]
 });
 
 var url_data = 'https://clmtmqz.github.io/projet/data/deded.geojson';
