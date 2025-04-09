@@ -13,16 +13,12 @@ var CartoDB_PositronOnlyLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/
 	maxZoom: 20
 });
 
-var Esri_WorldShadedRelief = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}', {
-	attribution: 'Tiles &copy; Esri &mdash; Source: Esri',
-	maxZoom: 13
-});
 
 // Initialisation de la carte
 var myMap = L.map('map', {
     center: [47, 1],
     zoom: 5,
-    layers: [Stadia_StamenTerrainBackground, CartoDB_PositronOnlyLabels,Esri_WorldShadedRelief]
+    layers: [Stadia_StamenTerrainBackground, CartoDB_PositronOnlyLabels]
 });
 
 var url_data = 'https://clmtmqz.github.io/projet/data/deded.geojson';
