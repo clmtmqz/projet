@@ -39,14 +39,6 @@ fetch(url_data)
     console.error('Erreur lors de la récupération des données :', error);
   });
 
-/*// Récupération des données GeoJSON
-var url_data = 'data/deded.geojson';
-
-$.getJSON(url_data, function(data1) {
-    // Ajouter la couche GeoJSON à la carte
-    L.geoJson(data1).addTo(myMap);
-});*/
-
 //Données en fonction du zoom 
 
 myMap.on('zoomend', function () {
