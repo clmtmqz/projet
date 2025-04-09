@@ -20,13 +20,32 @@ var myMap = L.map('map', {
     layers: [Stadia_StamenTerrainBackground, CartoDB_PositronOnlyLabels]
 });
 
-// Récupération des données GeoJSON
+var url_data = 'data/deded.geojson';
+
+// Utilisation de fetch pour récupérer le fichier GeoJSON
+fetch(url_data)
+  .then(response => {
+    // Vérifier si la réponse est correcte (code HTTP 200)
+    if (!response.ok) {
+      throw new Error('Erreur réseau : ' + response.statusText);
+    }
+    return response.json(); // Convertir la réponse en JSON
+  })
+  .then(data1 => {
+    // Ajouter la couche GeoJSON à la carte
+    L.geoJson(data1).addTo(myMap);
+  })
+  .catch(error => {
+    console.error('Erreur lors de la récupération des données :', error);
+  });
+
+/*// Récupération des données GeoJSON
 var url_data = 'data/deded.geojson';
 
 $.getJSON(url_data, function(data1) {
     // Ajouter la couche GeoJSON à la carte
     L.geoJson(data1).addTo(myMap);
-});
+});*/
 
 //Données en fonction du zoom 
 
