@@ -20,7 +20,7 @@ var myMap = L.map('map', {
     layers: [Stadia_StamenTerrainBackground, CartoDB_PositronOnlyLabels]
 });
 
-var url_data = '.data/deded.geojson';
+var url_data = './data/deded.geojson';
 
 // Utilisation de fetch pour récupérer le fichier GeoJSON
 fetch(url_data)
