@@ -21,7 +21,7 @@ var myMap = L.map('map', {
 });
 
 // Récupération des données GeoJSON
-var url_data = 'http://localhost/projet/deded.geojson';
+var url_data = 'data/deded.geojson';
 
 $.getJSON(url_data, function(data1) {
     // Ajouter la couche GeoJSON à la carte
