@@ -34,7 +34,7 @@ var myMap = L.map('map', {
 });
 
 
-var url_data = 'https://clmtmqz.github.io/projet/data/marins_1764_lamb93.geojson';
+var url_data = 'https://clmtmqz.github.io/projet/data/marins_1764_WGS84.geojson';
 
 // Utilisation de fetch pour récupérer le fichier GeoJSON
 fetch(url_data)
