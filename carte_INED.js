@@ -13,15 +13,28 @@ var CartoDB_PositronOnlyLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/
 	maxZoom: 20
 });
 
+var PlanIGN = L.tileLayer('https://data.geopf.fr/wmts?'+
+    '&REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&TILEMATRIXSET=PM'+
+    '&LAYER={ignLayer}&STYLE={style}&FORMAT={format}'+
+    '&TILECOL={x}&TILEROW={y}&TILEMATRIX={z}',
+    {
+        ignLayer: 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2',
+        style: 'normal',
+        format: 'image/png',
+        service: 'WMTS',
+        attribution: 'Carte © IGN/Geoplateforme'
+});
+
 
 // Initialisation de la carte
 var myMap = L.map('map', {
     center: [47, 1],
     zoom: 5,
-    layers: [Stadia_StamenTerrainBackground, CartoDB_PositronOnlyLabels]
+    layers: [PlanIGN]
 });
 
-var url_data = 'https://clmtmqz.github.io/projet/data/deded.geojson';
+
+var url_data = 'https://clmtmqz.github.io/projet/data/marins_1764_lamb93.geojson';
 
 // Utilisation de fetch pour récupérer le fichier GeoJSON
 fetch(url_data)
