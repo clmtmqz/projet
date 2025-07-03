@@ -297,4 +297,20 @@ td{
 #map {
     height: 700px;
 }
+/*poster*/
+.pdf-preview {
+  max-width: 800px;
+  width: 100%;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  text-align: center;
+}
+
+.pdf-preview img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
 
