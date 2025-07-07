@@ -17,34 +17,20 @@
             <li><strong><a href="poster.html" title="InfoSurLeLien">POSTER</a></strong></li>
         </ul>
     </header>
-  <!-- Aperçu JPEG du PDF -->
+
 <div class="pdf-preview">
   <img src="data/poster_template_VF_small.jpg" alt="poster overview" loading="lazy" />
   <p>
    <a href="data/poster_template_VF_small.pdf" download>Download PDF</a>
   </p>
-</div>
-<!-- Sélecteur de langue -->
-<div id="language-selector">
-  <label for="language">Choose your language:</label>
-  <select id="language">
-    <option value="auto">Auto-detect</option>
-    <option value="en">English</option>
-    <option value="fr">Français</option>
-    <option value="es">Español</option>
-    <option value="de">Deutsch</option>
-    <option value="it">Italiano</option>
-    <option value="pt">Português</option>
-    <option value="ru">Русский</option>
-    <option value="zh">中文</option>
-    <option value="ar">العربية</option>
-    <option value="tr">Türkçe</option>
-    <option value="hi">हिन्दी</option>
-    <option value="ja">日本語</option>
-    <option value="ko">한국어</option>
-    <option value="uk">Українська</option>
-  </select>
-</div>
+  
+<div id="google_translate_element"></div>
+<script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element');
+  }
+</script>
+<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit&hl=en"></script>
 <div class="text">
   <p>
     BETWEEN LAND AND SEA:
