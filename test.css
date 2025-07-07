@@ -313,17 +313,10 @@ td{
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
 }
 #Translate
-#language-selector {
+#google_translate_element {
   text-align: center;
   margin: 2rem 0;
   font-family: inherit;
-}
-
-#language {
-  padding: 0.5rem;
-  font-size: 1rem;
-  border-radius: 8px;
-  border: 1px solid #ccc;
 }
 
 
