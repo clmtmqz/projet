@@ -319,4 +319,12 @@ td{
   font-family: inherit;
 }
 
+#text {
+line-height: 1.8 ; 
+}
+#text h2 {
+  margin-top: 20px;
+  margin-bottom: 15px;
+}
+
 
