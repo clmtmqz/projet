@@ -12,12 +12,6 @@ The goal is to provide a simple, accessible interface to explore GEMER’s findi
 The project is hosted via GitHub Pages:  
 👉 [https://clmtmqz.github.io/projet/](https://clmtmqz.github.io/projet/)
 
-## 🗂️ Repository Structure
-
-- `index.html` – main webpage  
-- `style.css` – interface styling  
-- `script.js` – JavaScript logic  
-- `data/` – folder containing related files (e.g. images, PDFs)
 
 ## 📄 Credits
 
