@@ -1,71 +1,4 @@
-// //Flux
 
-// var Stadia_StamenTerrainBackground = L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_terrain_background/{z}/{x}/{y}{r}.{ext}', {
-// 	minZoom: 0,
-// 	maxZoom: 18,
-// 	attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://www.stamen.com/" target="_blank">Stamen Design</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-// 	ext: 'png'
-// });
-
-// var CartoDB_PositronOnlyLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
-// 	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-// 	subdomains: 'abcd',
-// 	maxZoom: 20
-// });
-
-// var PlanIGN = L.tileLayer('https://data.geopf.fr/wmts?'+
-//     '&REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&TILEMATRIXSET=PM'+
-//     '&LAYER={ignLayer}&STYLE={style}&FORMAT={format}'+
-//     '&TILECOL={x}&TILEROW={y}&TILEMATRIX={z}',
-//     {
-//         ignLayer: 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2',
-//         style: 'normal',
-//         format: 'image/png',
-//         service: 'WMTS',
-//         attribution: 'Carte © IGN/Geoplateforme'
-// });
-
-
-// // Initialisation de la carte
-// var myMap = L.map('map', {
-//     center: [47, 1],
-//     zoom: 5,
-//     layers: [PlanIGN]
-// });
-
-
-// var url_data = 'https://clmtmqz.github.io/projet/data/marins_1764_WGS84.geojson';
-
-// // Utilisation de fetch pour récupérer le fichier GeoJSON
-// fetch(url_data)
-//   .then(response => {
-//     // Vérifier si la réponse est correcte (code HTTP 200)
-//     if (!response.ok) {
-//       throw new Error('Erreur réseau : ' + response.statusText);
-//     }
-//     return response.json(); // Convertir la réponse en JSON
-//   })
-//   .then(data1 => {
-//     // Ajouter la couche GeoJSON à la carte
-//     L.geoJson(data1).addTo(myMap);
-//   })
-//   .catch(error => {
-//     console.error('Erreur lors de la récupération des données :', error);
-//   });
-
-// //Données en fonction du zoom 
-
-// myMap.on('zoomend', function () {
-//     if (myMap.getZoom() < 9.5) {
-//         if (!myMap.hasLayer(CartoDB_PositronOnlyLabels)) {
-//             myMap.addLayer(CartoDB_PositronOnlyLabels);
-//         }
-//     } else {
-//         if (myMap.hasLayer(CartoDB_PositronOnlyLabels)) {
-//             myMap.removeLayer(CartoDB_PositronOnlyLabels);
-//         }
-//     }
-// });
 // Configuration et variables globales
 const CONFIG = {
     SAINT_CHAMAS_COORDS: [43.5471, 5.0378],
@@ -79,25 +12,56 @@ const CONFIG = {
 
 // Variables globales
 let map;
+let marinsData = null;
+
 let markersLayer;
 let rasterLayer;
 let buildingsLayer;
 let clusterPopup;
 let currentZoom = 6;
 
-// Données simulées (à remplacer par vos vraies données)
-const mockData = {
-    individuals: [
-        {id: 1, lat: 43.5471, lng: 5.0378, name: "Pierre Martin", type: "marin"},
-        {id: 2, lat: 43.5480, lng: 5.0390, name: "Jean Dupont", type: "capitaine"},
-        {id: 3, lat: 43.5460, lng: 5.0360, name: "Marie Leclerc", type: "famille"},
-        {id: 4, lat: 43.2965, lng: 5.3698, name: "Paul Marseille", type: "marin"},
-        {id: 5, lat: 48.8566, lng: 2.3522, name: "Louis Paris", type: "capitaine"},
-        {id: 6, lat: 45.7640, lng: 4.8357, name: "Antoine Lyon", type: "marin"},
-        {id: 7, lat: 47.2184, lng: -1.5536, name: "François Nantes", type: "capitaine"},
-        {id: 8, lat: 49.4944, lng: 0.1079, name: "Henri Le Havre", type: "marin"}
-    ]
-};
+fetch('data/marins_1764_WGS84.geojson')
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Erreur lors du chargement du GeoJSON');
+    }
+    return response.json();
+  })
+  .then(data => {
+    marinsData = data;
+    // Ajouter les points à la carte
+    L.geoJSON(data, {
+      onEachFeature: function (feature, layer) {
+        const props = feature.properties;
+        const popupContent = `
+            <strong>${props.Prenom} ${props.Nom}</strong><br>
+            Domicile (1764) : ${props.Domicile_1764}<br>
+            Adresse précise : ${props.Domicile_precis_1764}
+        `;
+        layer.bindPopup(popupContent);
+      }
+    }).addTo(map);
+  })
+  
+  .catch(error => {
+    console.error('Erreur lors du chargement du fichier GeoJSON :', error);
+  });
+
+
+fetch('data/saint_chamas_cadastre_1819.tif')
+  .then(response => response.arrayBuffer())
+  .then(arrayBuffer => parseGeoraster(arrayBuffer))
+  .then(georaster => {
+    const layer = new GeoRasterLayer({
+      georaster: georaster,
+      opacity: 0.7
+    });
+    rasterLayer.clearLayers();
+    rasterLayer.addLayer(layer);
+    rasterLayer.addTo(map);
+  })
+  .catch(console.error);
+
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', function() {
