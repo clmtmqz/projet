@@ -13,61 +13,173 @@ const CONFIG = {
 // Variables globales
 let map;
 let marinsData = null;
-
+let buildingsData = null;
 let markersLayer;
 let rasterLayer;
 let buildingsLayer;
 let clusterPopup;
 let currentZoom = 6;
 
-fetch('data/marins_1764_WGS84.geojson')
-  .then(response => {
-    if (!response.ok) {
-      throw new Error('Erreur lors du chargement du GeoJSON');
+// Chargement des données marins
+function loadMarinsData() {
+    fetch('data/marins_1764_WGS84.geojson')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erreur lors du chargement du GeoJSON marins');
+            }
+            return response.json();
+        })
+        .then(data => {
+            marinsData = data;
+            displayMarkers();
+        })
+        .catch(error => {
+            console.error('Erreur lors du chargement des marins :', error);
+        });
+}
+
+// Affichage des marqueurs selon le zoom
+function displayMarkers() {
+    if (!marinsData || !document.getElementById('markers-toggle').checked) return;
+    
+    markersLayer.clearLayers();
+    
+    const zoom = map.getZoom();
+    
+    if (zoom >= CONFIG.ZOOM_THRESHOLDS.DETAIL) {
+        // Zoom détaillé : afficher tous les marqueurs individuels
+        L.geoJSON(marinsData, {
+            onEachFeature: function (feature, layer) {
+                const props = feature.properties;
+                const popupContent = `
+                    <strong>${props.Prenom} ${props.Nom}</strong><br>
+                    Domicile (1764) : ${props.Domicile_1764}<br>
+                    Adresse précise : ${props.Domicile_precis_1764}
+                `;
+                layer.bindPopup(popupContent);
+            }
+        }).addTo(markersLayer);
+    } else if (zoom >= CONFIG.ZOOM_THRESHOLDS.MEDIUM) {
+        // Zoom moyen : créer des clusters
+        createClusters();
+    } else {
+        // Zoom faible : clusters régionaux
+        createRegionalClusters();
     }
-    return response.json();
-  })
-  .then(data => {
-    marinsData = data;
-    // Ajouter les points à la carte
-    L.geoJSON(data, {
-      onEachFeature: function (feature, layer) {
-        const props = feature.properties;
-        const popupContent = `
-            <strong>${props.Prenom} ${props.Nom}</strong><br>
-            Domicile (1764) : ${props.Domicile_1764}<br>
-            Adresse précise : ${props.Domicile_precis_1764}
-        `;
-        layer.bindPopup(popupContent);
-      }
-    }).addTo(map);
-  })
-  
-  .catch(error => {
-    console.error('Erreur lors du chargement du fichier GeoJSON :', error);
-  });
+}
 
-
-fetch('data/saint_chamas_cadastre_1819.tif')
-  .then(response => response.arrayBuffer())
-  .then(arrayBuffer => parseGeoraster(arrayBuffer))
-  .then(georaster => {
-    const layer = new GeoRasterLayer({
-      georaster: georaster,
-      opacity: 0.7
+function createClusters() {
+    const clusters = new Map();
+    const clusterSize = 0.05; // Taille du cluster en degrés
+    
+    marinsData.features.forEach(feature => {
+        const [lng, lat] = feature.geometry.coordinates;
+        const clusterKey = `${Math.floor(lat/clusterSize)}_${Math.floor(lng/clusterSize)}`;
+        
+        if (!clusters.has(clusterKey)) {
+            clusters.set(clusterKey, {
+                lat: Math.floor(lat/clusterSize) * clusterSize + clusterSize/2,
+                lng: Math.floor(lng/clusterSize) * clusterSize + clusterSize/2,
+                features: []
+            });
+        }
+        
+        clusters.get(clusterKey).features.push(feature);
     });
-    rasterLayer.clearLayers();
-    rasterLayer.addLayer(layer);
-    rasterLayer.addTo(map);
-  })
-  .catch(console.error);
+    
+    clusters.forEach(cluster => {
+        const count = cluster.features.length;
+        const marker = L.marker([cluster.lat, cluster.lng], {
+            icon: L.divIcon({
+                html: `<div class="marker-cluster medium">${count}</div>`,
+                iconSize: [40, 40],
+                className: 'marker-cluster-container'
+            })
+        });
+        
+        marker.on('click', () => {
+            showClusterPopup(cluster.features);
+        });
+        
+        markersLayer.addLayer(marker);
+    });
+}
 
+function createRegionalClusters() {
+    // Créer des clusters très larges pour la vue d'ensemble
+    const marker = L.marker([46.603354, 1.888334], {
+        icon: L.divIcon({
+            html: `<div class="marker-cluster large">${marinsData.features.length}</div>`,
+            iconSize: [50, 50],
+            className: 'marker-cluster-container'
+        })
+    });
+    
+    marker.on('click', () => {
+        showClusterPopup(marinsData.features);
+    });
+    
+    markersLayer.addLayer(marker);
+}
+
+// Chargement de la couche cadastre
+function loadCadastreLayer() {
+    if (!document.getElementById('raster-toggle').checked) return;
+    
+    rasterLayer.clearLayers();
+    
+    const zoom = map.getZoom();
+    const bounds = map.getBounds();
+    
+    // Afficher seulement si zoom élevé et dans la zone Saint-Chamas
+    if (zoom >= CONFIG.ZOOM_THRESHOLDS.DETAIL && bounds.contains(CONFIG.SAINT_CHAMAS_COORDS)) {
+        
+        // Option 1 : Essayer avec le TIF
+        fetch('data/saint_chamas_cadastre_1819.tif')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('TIF non disponible');
+                }
+                return response.arrayBuffer();
+            })
+            .then(arrayBuffer => parseGeoraster(arrayBuffer))
+            .then(georaster => {
+                const layer = new GeoRasterLayer({
+                    georaster: georaster,
+                    opacity: 0.7
+                });
+                rasterLayer.addLayer(layer);
+            })
+            .catch(error => {
+                console.log('TIF non disponible, utilisation du JPEG');
+                loadJpegCadastre();
+            });
+    }
+}
+
+// Option 2 : Chargement JPEG avec coordonnées
+function loadJpegCadastre() {
+    // Coordonnées approximatives pour Saint-Chamas
+    const imageBounds = [
+        [43.540, 5.030],  // Sud-Ouest
+        [43.555, 5.045]   // Nord-Est
+    ];
+    
+    const imageOverlay = L.imageOverlay('data/saint_chamas_cadastre_1819.jpeg', imageBounds, {
+        opacity: 0.7,
+        interactive: true
+    });
+    
+    rasterLayer.addLayer(imageOverlay);
+}
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', function() {
     initializeMap();
     setupEventListeners();
-    loadDefaultData();
+    loadMarinsData();
+    loadBuildingsData();
+    updateZoomInfo();
 });
 
 // Initialisation de la carte
@@ -94,7 +206,53 @@ function initializeMap() {
     // Popup cluster
     clusterPopup = document.getElementById('cluster-popup');
 }
+// Chargement des données bâtiments
+function loadBuildingsData() {
+    fetch('data/building_chamas.geojson')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erreur lors du chargement du GeoJSON bâtiments');
+            }
+            return response.json();
+        })
+        .then(data => {
+            buildingsData = data;
+            displayBuildings();
+        })
+        .catch(error => {
+            console.error('Erreur lors du chargement des bâtiments :', error);
+        });
+}
 
+// Affichage des bâtiments
+function displayBuildings() {
+    if (!buildingsData || !document.getElementById('buildings-toggle').checked) return;
+    
+    buildingsLayer.clearLayers();
+    
+    const zoom = map.getZoom();
+    const bounds = map.getBounds();
+    
+    // Afficher seulement si zoom élevé et dans la zone Saint-Chamas
+    if (zoom >= CONFIG.ZOOM_THRESHOLDS.DETAIL && bounds.contains(CONFIG.SAINT_CHAMAS_COORDS)) {
+        L.geoJSON(buildingsData, {
+            style: {
+                color: 'red',
+                weight: 2,
+                opacity: 0.8,
+                fillOpacity: 0.5
+            },
+            onEachFeature: function (feature, layer) {
+                const props = feature.properties;
+                const popupContent = `
+                    <strong>Bâtiment</strong><br>
+                    ${props.name || props.type || 'Détails non disponibles'}
+                `;
+                layer.bindPopup(popupContent);
+            }
+        }).addTo(buildingsLayer);
+    }
+}
 // Configuration des événements
 function setupEventListeners() {
     // Contrôles des couches
