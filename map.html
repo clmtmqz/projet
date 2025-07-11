@@ -1,39 +1,4 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <title>GEMER project map</title>
-    <link rel="stylesheet" href="test.css">
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=abhaya-libre:400" rel="stylesheet" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  </head>
-  <body>
-    <header>
-      <ul id="menu">
-        <li><strong><a href="index.html" title="InfoSurLeLien">HOME</a></strong></li>
-        <li><strong><a href="map.html" title="InfoSurLeLien">MAP</a></strong></li>
-        <li><strong><a href="poster.html" title="InfoSurLeLien">POSTER</a></strong></li>
-      </ul>
-    </header>
-    <div id="map"></div>
-    <script src="map_sailors.js"></script>  
-  
-    </div>
 
-    Pop-up overlay -->
-    <!-- <div id="popupOverlay" class="popup-overlay">
-        <div class="popup-content">
-            <button class="popup-close" onclick="hidePopup()">&times;</button>
-            <div id="popupBody" class="popup-body">
-                <p>Chargement du contenu...</p>
-            </div>
-        </div>
-<script src="pop_up.js"></script>
-</body>
-</html> -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -48,6 +13,7 @@
 </head>
 
 <body>
+  
 <header>
       <ul id="menu">
         <li><strong><a href="index.html" title="InfoSurLeLien">HOME</a></strong></li>
@@ -65,19 +31,19 @@
         <!-- Menu de sélection des données -->
         <div class="controls-panel">
             <div class="data-selector">
-                <h3>Sélection des données</h3>
+                <h3>Data selector</h3>
                 <div class="checkbox-group">
                     <label class="checkbox-item">
                         <input type="checkbox" id="markers-toggle" checked>
-                        <span>Individus (markers)</span>
+                        <span>Seafarers enlisted in matricule register in 1764</span>
                     </label>
                     <label class="checkbox-item">
                         <input type="checkbox" id="raster-toggle">
-                        <span>Données raster</span>
+                        <span>Saint-Chamas Napoleonic cadastre of 1819</span>
                     </label>
                     <label class="checkbox-item">
                         <input type="checkbox" id="buildings-toggle">
-                        <span>Bâtiments</span>
+                        <span>Buliding of Saint-Chamas in 1819</span>
                     </label>
                 </div>
             </div>
@@ -88,7 +54,7 @@
             <div id="map"></div>
             <div class="zoom-info">
                 <span id="zoom-level">Zoom: --</span>
-                <span id="visible-layers">Couches: --</span>
+                <span id="visible-layers">Layers: --</span>
             </div>
         </div>
 
@@ -103,8 +69,8 @@
         <div id="cluster-popup" class="cluster-popup hidden">
             <div class="popup-content">
                 <span class="close-popup">&times;</span>
-                <h4>Entités proches</h4>
-                <p id="cluster-count">0 entités dans cette zone</p>
+                <h4>Close Seafarers</h4>
+                <p id="cluster-count">0 Seafarers in this area</p>
                 <div id="cluster-details"></div>
             </div>
         </div>
