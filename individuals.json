@@ -1,0 +1,76 @@
+{
+  "individuals": [
+    {
+      "id": 1,
+      "name": "Pierre Martin",
+      "type": "marin",
+      "lat": 43.5471,
+      "lng": 5.0378,
+      "birth_year": 1745,
+      "residence": "Saint-Chamas"
+    },
+    {
+      "id": 2,
+      "name": "Jean Dupont",
+      "type": "capitaine",
+      "lat": 43.5480,
+      "lng": 5.0390,
+      "birth_year": 1738,
+      "residence": "Saint-Chamas"
+    },
+    {
+      "id": 3,
+      "name": "Marie Leclerc",
+      "type": "famille",
+      "lat": 43.5460,
+      "lng": 5.0360,
+      "birth_year": 1752,
+      "residence": "Saint-Chamas"
+    },
+    {
+      "id": 4,
+      "name": "Paul Marseille",
+      "type": "marin",
+      "lat": 43.2965,
+      "lng": 5.3698,
+      "birth_year": 1741,
+      "residence": "Marseille"
+    },
+    {
+      "id": 5,
+      "name": "Louis Paris",
+      "type": "capitaine",
+      "lat": 48.8566,
+      "lng": 2.3522,
+      "birth_year": 1735,
+      "residence": "Paris"
+    },
+    {
+      "id": 6,
+      "name": "Antoine Lyon",
+      "type": "marin",
+      "lat": 45.7640,
+      "lng": 4.8357,
+      "birth_year": 1748,
+      "residence": "Lyon"
+    },
+    {
+      "id": 7,
+      "name": "François Nantes",
+      "type": "capitaine",
+      "lat": 47.2184,
+      "lng": -1.5536,
+      "birth_year": 1740,
+      "residence": "Nantes"
+    },
+    {
+      "id": 8,
+      "name": "Henri Le Havre",
+      "type": "marin",
+      "lat": 49.4944,
+      "lng": 0.1079,
+      "birth_year": 1743,
+      "residence": "Le Havre"
+    }
+  ]
+}

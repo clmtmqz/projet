@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8">
@@ -7,7 +7,6 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=abhaya-libre:400" rel="stylesheet" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" media="print" href="print.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   </head>
@@ -24,8 +23,8 @@
   
     </div>
 
-    <!-- Pop-up overlay -->
-    <div id="popupOverlay" class="popup-overlay">
+    Pop-up overlay -->
+    <!-- <div id="popupOverlay" class="popup-overlay">
         <div class="popup-content">
             <button class="popup-close" onclick="hidePopup()">&times;</button>
             <div id="popupBody" class="popup-body">
@@ -33,5 +32,84 @@
             </div>
         </div>
 <script src="pop_up.js"></script>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEMER project map</title>
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=abhaya-libre:400" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="test.css">
+</head>
+
+<body>
+<header>
+      <ul id="menu">
+        <li><strong><a href="index.html" title="InfoSurLeLien">HOME</a></strong></li>
+        <li><strong><a href="map.html" title="InfoSurLeLien">MAP</a></strong></li>
+        <li><strong><a href="poster.html" title="InfoSurLeLien">POSTER</a></strong></li>
+      </ul>
+    </header>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <h1>GEMER</h1>
+            <p>RESIDENTIAL AND OCCUPATIONAL MOBILITY AMONG 18th-CENTURY FRENCH SAILORS</p>
+        </header>
+
+        <!-- Menu de sélection des données -->
+        <div class="controls-panel">
+            <div class="data-selector">
+                <h3>Sélection des données</h3>
+                <div class="checkbox-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="markers-toggle" checked>
+                        <span>Individus (markers)</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="raster-toggle">
+                        <span>Données raster</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="buildings-toggle">
+                        <span>Bâtiments</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conteneur de la carte -->
+        <div class="map-container">
+            <div id="map"></div>
+            <div class="zoom-info">
+                <span id="zoom-level">Zoom: --</span>
+                <span id="visible-layers">Couches: --</span>
+            </div>
+        </div>
+
+        <!-- Bouton Saint-Chamas -->
+        <div class="action-panel">
+            <button id="saint-chamas-btn" class="primary-btn">
+                Watch Saint-Chamas details
+            </button>
+        </div>
+
+        <!-- Popup info -->
+        <div id="cluster-popup" class="cluster-popup hidden">
+            <div class="popup-content">
+                <span class="close-popup">&times;</span>
+                <h4>Entités proches</h4>
+                <p id="cluster-count">0 entités dans cette zone</p>
+                <div id="cluster-details"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="map_sailors.js"></script>
 </body>
 </html>
