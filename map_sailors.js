@@ -5,7 +5,9 @@ const CONFIG = {
     SAINT_CHAMAS_COORDS: [43.5471, 5.0378],
     FRANCE_BOUNDS: [[41.333, -5.225], [51.124, 9.662]],
     ZOOM_THRESHOLDS: {
-        DETAIL: 15,   // Marqueurs individuels à partir du zoom 15
+        DETAIL: 15,
+        MAX_ZOOM: 14,  // Zoom maximum autorisé
+        CADASTRE: 14,  
         MEDIUM: 8,    // Clusters 1km à partir du zoom 8
         OVERVIEW: 6   // Clusters 60km jusqu'au zoom 7
     },
@@ -39,29 +41,29 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 
 // Initialisation de la carte
 function initializeMap() {
-    map = L.map('map').setView([46.603354, 1.888334], 6);
-    
-    // Couche de base OpenStreetMap
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-    
+    map = L.map('map', {
+        maxZoom: 14  // Bloque le zoom maximum à 14
+    }).setView([46.603354, 1.888334], 6);
+   
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'C.Marquez, I.Séguy, members of the GEMER project, 2025. Tiles : © Esri — Esri, DeLorme, NAVTEQ'
+}).addTo(map);
+   
     // Initialisation des couches
     markersLayer = L.layerGroup();
     rasterLayer = L.layerGroup();
     buildingsLayer = L.layerGroup();
-    
+   
     // Ajouter la couche des marqueurs par défaut
     markersLayer.addTo(map);
-    
+   
     // Événements de la carte
     map.on('zoomend', handleZoomChange);
     map.on('moveend', updateVisibleLayers);
-    
+   
     // Popup cluster
     clusterPopup = document.getElementById('cluster-popup');
 }
-
 // Chargement des données marins
 function loadMarinsData() {
     fetch('data/marins_1764_WGS84.geojson')
@@ -244,7 +246,7 @@ function displayBuildings() {
     const bounds = map.getBounds();
     
     // Afficher seulement si zoom élevé et dans la zone Saint-Chamas
-    if (zoom >= CONFIG.ZOOM_THRESHOLDS.DETAIL && bounds.contains(CONFIG.SAINT_CHAMAS_COORDS)) {
+    if (zoom >= CONFIG.ZOOM_THRESHOLDS.CADASTRE  && bounds.contains(CONFIG.SAINT_CHAMAS_COORDS)) {
         L.geoJSON(buildingsData, {
             style: {
                 color: 'red',
@@ -274,7 +276,7 @@ function loadCadastreLayer() {
     const bounds = map.getBounds();
     
     // Afficher seulement si zoom élevé et dans la zone Saint-Chamas
-    if (zoom >= CONFIG.ZOOM_THRESHOLDS.DETAIL && bounds.contains(CONFIG.SAINT_CHAMAS_COORDS)) {
+    if (zoom >= CONFIG.ZOOM_THRESHOLDS.CADASTRE && bounds.contains(CONFIG.SAINT_CHAMAS_COORDS)) {
         
         // Vérifier si le fichier TIF existe
         fetch('data/saint_chamas_cadastre_1819.tif', { method: 'HEAD' })
@@ -525,8 +527,17 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     loadMarinsData();
     loadBuildingsData();
+
+    // Activer le layer cadastre par défaut
+    const rasterToggle = document.getElementById('raster-toggle');
+    if (rasterToggle) {
+        rasterToggle.checked = true;
+        toggleRaster(); // Active la couche si cochée
+    }
+
     updateZoomInfo();
 });
+
 
 // Gestion des erreurs
 window.onerror = function(msg, url, lineNo, columnNo, error) {
