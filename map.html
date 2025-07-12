@@ -1,37 +1,84 @@
+
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GEMER project map</title>
-    <link rel="stylesheet" href="test.css">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=abhaya-libre:400" rel="stylesheet" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" media="print" href="print.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  </head>
-  <body>
-    <header>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="test.css">
+
+</head>
+
+<body>
+  
+<header>
       <ul id="menu">
         <li><strong><a href="index.html" title="InfoSurLeLien">HOME</a></strong></li>
         <li><strong><a href="map.html" title="InfoSurLeLien">MAP</a></strong></li>
         <li><strong><a href="poster.html" title="InfoSurLeLien">POSTER</a></strong></li>
       </ul>
     </header>
-    <div id="map"></div>
-    <script src="map_sailors.js"></script>  
-  
-    </div>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <h1>GEMER</h1>
+            <p>RESIDENTIAL AND OCCUPATIONAL MOBILITY AMONG 18th-CENTURY FRENCH SAILORS</p>
+        </header>
 
-    <!-- Pop-up overlay -->
-    <div id="popupOverlay" class="popup-overlay">
-        <div class="popup-content">
-            <button class="popup-close" onclick="hidePopup()">&times;</button>
-            <div id="popupBody" class="popup-body">
-                <p>Chargement du contenu...</p>
+        <!-- Menu de sélection des données -->
+        <div class="controls-panel">
+            <div class="data-selector">
+                <h3>Data selector</h3>
+                <div class="checkbox-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="markers-toggle" checked>
+                        <span>Seafarers enlisted in matricule register in 1764</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="raster-toggle" checked>
+                        <span>Saint-Chamas Napoleonic cadastre of 1819</span>
+                    </label>
+                    <!-- <label class="checkbox-item">
+                        <input type="checkbox" id="buildings-toggle">
+                        <span>Buliding of Saint-Chamas in 1819</span>
+                    </label> -->
+                </div>
             </div>
         </div>
-<script src="pop_up.js"></script>
+
+        <!-- Conteneur de la carte -->
+        <div class="map-container">
+            <div id="map"></div>
+            <div class="zoom-info">
+                <span id="zoom-level">Zoom: --</span>
+                <span id="visible-layers">Layers: --</span>
+            </div>
+        </div>
+
+        <!-- Bouton Saint-Chamas -->
+        <div class="action-panel">
+            <button id="saint-chamas-btn" class="primary-btn">
+                Watch Saint-Chamas details
+            </button>
+        </div>
+
+        <!-- Popup info -->
+        <div id="cluster-popup" class="cluster-popup hidden">
+            <div class="popup-content">
+                <span class="close-popup">&times;</span>
+                <h4>Close Seafarers</h4>
+                <p id="cluster-count">0 Seafarers in this area</p>
+                <div id="cluster-details"></div>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/geotiff@1.0.0-beta.11/dist/geotiff.browser.min.js"></script>
+<script src="https://unpkg.com/georaster@1.5.2/dist/georaster.browser.min.js"></script>
+<script src="https://unpkg.com/georaster-layer-for-leaflet@1.8.5/dist/georaster-layer-for-leaflet.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="map_sailors.js"></script>
 </body>
 </html>
