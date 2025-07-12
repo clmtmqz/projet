@@ -43,7 +43,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 function initializeMap() {
     map = L.map('map', {
         maxZoom: 14  // Bloque le zoom maximum à 14
-    }).setView([46.603354, 1.888334], 6);
+    }).setView([46.603354, 1.888334], 5);
    
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
     attribution: 'C.Marquez, I.Séguy, members of the GEMER project, 2025. Tiles : © Esri — Esri, DeLorme, NAVTEQ'
