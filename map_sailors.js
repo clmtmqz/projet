@@ -165,7 +165,7 @@ function loadJpegCadastre() {
         [43.555, 5.045]   // Nord-Est
     ];
     
-    const imageOverlay = L.imageOverlay('data/saint_chamas_cadastre_1819.jpeg', imageBounds, {
+    const imageOverlay = L.imageOverlay('data/saint_chamas_cadastre_1819.jpg', imageBounds, {
         opacity: 0.7,
         interactive: true
     });
@@ -430,16 +430,19 @@ function createClusterIcon(count, size = 'auto') {
 }
 
 // Affichage du popup de cluster
-function showClusterPopup(cluster) {
-    const detailsHtml = cluster.individuals.map(individual => `
-        <div style="padding: 0.5rem; border-bottom: 1px solid #eee;">
-            <strong>${individual.name}</strong><br>
-            <small>Type: ${individual.type} | ID: ${individual.id}</small>
-        </div>
-    `).join('');
+function showClusterPopup(features) {
+    const detailsHtml = features.map(feature => {
+        const props = feature.properties;
+        return `
+            <div style="padding: 0.5rem; border-bottom: 1px solid #eee;">
+                <strong>${props.Prenom} ${props.Nom}</strong><br>
+                <small>Domicile: ${props.Domicile_1764}</small>
+            </div>
+        `;
+    }).join('');
     
     document.getElementById('cluster-count').textContent = 
-        `${cluster.count} entité${cluster.count > 1 ? 's' : ''} dans cette zone`;
+        `${features.length} marin${features.length > 1 ? 's' : ''} dans cette zone`;
     
     document.getElementById('cluster-details').innerHTML = detailsHtml;
     
@@ -453,44 +456,66 @@ function closeClusterPopup() {
 
 // Gestion du changement de zoom
 function handleZoomChange() {
-    const newZoom = map.getZoom();
-    
-    if (Math.abs(newZoom - currentZoom) >= 1) {
-        currentZoom = newZoom;
-        
-        // Recharger les marqueurs selon le nouveau zoom
-        if (document.getElementById('markers-toggle').checked) {
-            loadMarkers();
-        }
-        
-        // Gérer les couches selon le zoom
-        updateLayerVisibility();
-    }
-    
+    currentZoom = map.getZoom();
+    updateLayerVisibility();
     updateZoomInfo();
 }
 
 // Mise à jour de la visibilité des couches
 function updateLayerVisibility() {
     const zoom = map.getZoom();
-    const bounds = map.getBounds();
+    const bounds = map.getBounds();}
     
-    // Vérifier si on est sur Saint-Chamas
-    const saintChamasVisible = bounds.contains(CONFIG.SAINT_CHAMAS_COORDS);
+// Basculement des couches
+function toggleMarkers() {
+    const isChecked = document.getElementById('markers-toggle').checked;
     
-    // Raster et bâtiments seulement si zoom élevé et sur Saint-Chamas
-    if (zoom >= CONFIG.ZOOM_THRESHOLDS.DETAIL && saintChamasVisible) {
-        if (document.getElementById('raster-toggle').checked) {
-            loadRasterLayer();
-        }
-        if (document.getElementById('buildings-toggle').checked) {
-            loadBuildingsLayer();
-        }
+    if (isChecked) {
+        map.addLayer(markersLayer);
+        displayMarkers();
     } else {
-        // Supprimer les couches si zoom trop faible
-        rasterLayer.clearLayers();
-        buildingsLayer.clearLayers();
+        map.removeLayer(markersLayer);
     }
+    updateZoomInfo();
+}
+
+function toggleRaster() {
+    const isChecked = document.getElementById('raster-toggle').checked;
+    
+    if (isChecked) {
+        map.addLayer(rasterLayer);
+        loadCadastreLayer();
+    } else {
+        map.removeLayer(rasterLayer);
+    }
+    updateZoomInfo();
+}
+
+function toggleBuildings() {
+    const isChecked = document.getElementById('buildings-toggle').checked;
+    
+    if (isChecked) {
+        map.addLayer(buildingsLayer);
+        displayBuildings();
+    } else {
+        map.removeLayer(buildingsLayer);
+    }
+    updateZoomInfo();
+}
+
+// Focus sur Saint-Chamas (version corrigée)
+function focusOnSaintChamas() {
+    map.setView(CONFIG.SAINT_CHAMAS_COORDS, CONFIG.ZOOM_THRESHOLDS.DETAIL);
+    
+    // Activer automatiquement les couches détaillées après un délai
+    setTimeout(() => {
+        document.getElementById('raster-toggle').checked = true;
+        document.getElementById('buildings-toggle').checked = true;
+        
+        toggleRaster();
+        toggleBuildings();
+        updateLayerVisibility();
+    }, 1000);
 }
 
 // Chargement de la couche raster

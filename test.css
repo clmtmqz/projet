@@ -764,3 +764,53 @@ main#project {
 .layer-overlay.hidden {
     display: none;
 }
+
+/* Amélioration des clusters */
+.marker-cluster-container {
+    background: transparent !important;
+    border: none !important;
+}
+
+.marker-cluster {
+    background: rgba(52, 152, 219, 0.8);
+    border: 2px solid #3498db;
+    border-radius: 50%;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.marker-cluster.small {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+}
+
+.marker-cluster.medium {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+}
+
+.marker-cluster.large {
+    width: 50px;
+    height: 50px;
+    font-size: 1.2rem;
+    background: rgba(231, 76, 60, 0.8);
+    border-color: #e74c3c;
+}
+
+/* Amélioration du popup cluster */
+.cluster-popup {
+    max-width: 400px;
+    max-height: 300px;
+}
+
+#cluster-details {
+    max-height: 200px;
+    overflow-y: auto;
+}
