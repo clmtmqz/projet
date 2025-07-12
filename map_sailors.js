@@ -1,4 +1,5 @@
 
+
 // Configuration et variables globales
 const CONFIG = {
     SAINT_CHAMAS_COORDS: [43.5471, 5.0378],
@@ -20,6 +21,31 @@ let buildingsLayer;
 let clusterPopup;
 let currentZoom = 6;
 
+// Initialisation de la carte
+function initializeMap() {
+    map = L.map('map').setView([46.603354, 1.888334], 6);
+    
+    // Couche de base OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    
+    // Initialisation des couches
+    markersLayer = L.layerGroup();
+    rasterLayer = L.layerGroup();
+    buildingsLayer = L.layerGroup();
+    
+    // Ajouter la couche des marqueurs par défaut
+    markersLayer.addTo(map);
+    
+    // Événements de la carte
+    map.on('zoomend', handleZoomChange);
+    map.on('moveend', updateVisibleLayers);
+    
+    // Popup cluster
+    clusterPopup = document.getElementById('cluster-popup');
+}
+
 // Chargement des données marins
 function loadMarinsData() {
     fetch('data/marins_1764_WGS84.geojson')
@@ -38,6 +64,24 @@ function loadMarinsData() {
         });
 }
 
+// Chargement des données bâtiments
+function loadBuildingsData() {
+    fetch('data/building_chamas.geojson')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erreur lors du chargement du GeoJSON bâtiments');
+            }
+            return response.json();
+        })
+        .then(data => {
+            buildingsData = data;
+            displayBuildings();
+        })
+        .catch(error => {
+            console.error('Erreur lors du chargement des bâtiments :', error);
+        });
+}
+
 // Affichage des marqueurs selon le zoom
 function displayMarkers() {
     if (!marinsData || !document.getElementById('markers-toggle').checked) return;
@@ -53,8 +97,8 @@ function displayMarkers() {
                 const props = feature.properties;
                 const popupContent = `
                     <strong>${props.Prenom} ${props.Nom}</strong><br>
-                    Domicile (1764) : ${props.Domicile_1764}<br>
-                    Adresse précise : ${props.Domicile_precis_1764}
+                    Residence (1764): ${props.Domicile_1764}<br>
+                    Precise address: ${props.Domicile_precis_1764}
                 `;
                 layer.bindPopup(popupContent);
             }
@@ -68,6 +112,7 @@ function displayMarkers() {
     }
 }
 
+// Création de clusters pour zoom moyen
 function createClusters() {
     const clusters = new Map();
     const clusterSize = 0.05; // Taille du cluster en degrés
@@ -105,6 +150,7 @@ function createClusters() {
     });
 }
 
+// Création de clusters régionaux
 function createRegionalClusters() {
     // Créer des clusters très larges pour la vue d'ensemble
     const marker = L.marker([46.603354, 1.888334], {
@@ -120,108 +166,6 @@ function createRegionalClusters() {
     });
     
     markersLayer.addLayer(marker);
-}
-
-// Chargement de la couche cadastre
-function loadCadastreLayer() {
-    if (!document.getElementById('raster-toggle').checked) return;
-    
-    rasterLayer.clearLayers();
-    
-    const zoom = map.getZoom();
-    const bounds = map.getBounds();
-    
-    // Afficher seulement si zoom élevé et dans la zone Saint-Chamas
-    if (zoom >= CONFIG.ZOOM_THRESHOLDS.DETAIL && bounds.contains(CONFIG.SAINT_CHAMAS_COORDS)) {
-        
-        // Option 1 : Essayer avec le TIF
-        fetch('data/saint_chamas_cadastre_1819.tif')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('TIF non disponible');
-                }
-                return response.arrayBuffer();
-            })
-            .then(arrayBuffer => parseGeoraster(arrayBuffer))
-            .then(georaster => {
-                const layer = new GeoRasterLayer({
-                    georaster: georaster,
-                    opacity: 0.7
-                });
-                rasterLayer.addLayer(layer);
-            })
-            .catch(error => {
-                console.log('TIF non disponible, utilisation du JPEG');
-                loadJpegCadastre();
-            });
-    }
-}
-
-// Option 2 : Chargement JPEG avec coordonnées
-function loadJpegCadastre() {
-    // Coordonnées approximatives pour Saint-Chamas
-    const imageBounds = [
-        [43.540, 5.030],  // Sud-Ouest
-        [43.555, 5.045]   // Nord-Est
-    ];
-    
-    const imageOverlay = L.imageOverlay('data/saint_chamas_cadastre_1819.jpg', imageBounds, {
-        opacity: 0.7,
-        interactive: true
-    });
-    
-    rasterLayer.addLayer(imageOverlay);
-}
-
-// Initialisation
-document.addEventListener('DOMContentLoaded', function() {
-    initializeMap();
-    setupEventListeners();
-    loadMarinsData();
-    loadBuildingsData();
-    updateZoomInfo();
-});
-
-// Initialisation de la carte
-function initializeMap() {
-    map = L.map('map').setView([46.603354, 1.888334], 6);
-    
-    // Couche de base OpenStreetMap
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-    
-    // Initialisation des couches
-    markersLayer = L.layerGroup();
-    rasterLayer = L.layerGroup();
-    buildingsLayer = L.layerGroup();
-    
-    // Ajouter la couche des marqueurs par défaut
-    markersLayer.addTo(map);
-    
-    // Événements de la carte
-    map.on('zoomend', handleZoomChange);
-    map.on('moveend', updateVisibleLayers);
-    
-    // Popup cluster
-    clusterPopup = document.getElementById('cluster-popup');
-}
-// Chargement des données bâtiments
-function loadBuildingsData() {
-    fetch('data/building_chamas.geojson')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Erreur lors du chargement du GeoJSON bâtiments');
-            }
-            return response.json();
-        })
-        .then(data => {
-            buildingsData = data;
-            displayBuildings();
-        })
-        .catch(error => {
-            console.error('Erreur lors du chargement des bâtiments :', error);
-        });
 }
 
 // Affichage des bâtiments
@@ -245,188 +189,77 @@ function displayBuildings() {
             onEachFeature: function (feature, layer) {
                 const props = feature.properties;
                 const popupContent = `
-                    <strong>Bâtiment</strong><br>
-                    ${props.name || props.type || 'Détails non disponibles'}
+                    <strong>Building</strong><br>
+                    ${props.name || props.type || 'Details not available'}
                 `;
                 layer.bindPopup(popupContent);
             }
         }).addTo(buildingsLayer);
     }
 }
-// Configuration des événements
-function setupEventListeners() {
-    // Contrôles des couches
-    document.getElementById('markers-toggle').addEventListener('change', toggleMarkers);
-    document.getElementById('raster-toggle').addEventListener('change', toggleRaster);
-    document.getElementById('buildings-toggle').addEventListener('change', toggleBuildings);
-    
-    // Bouton Saint-Chamas
-    document.getElementById('saint-chamas-btn').addEventListener('click', focusOnSaintChamas);
-    
-    // Fermeture du popup
-    document.querySelector('.close-popup').addEventListener('click', closeClusterPopup);
-    
-    // Fermeture du popup en cliquant à l'extérieur
-    clusterPopup.addEventListener('click', function(e) {
-        if (e.target === clusterPopup) {
-            closeClusterPopup();
-        }
-    });
-}
 
-// Chargement des données par défaut
-function loadDefaultData() {
-    loadMarkers();
-    updateZoomInfo();
-}
-
-// Gestion des marqueurs
-function loadMarkers() {
-    markersLayer.clearLayers();
+// Chargement de la couche cadastre
+function loadCadastreLayer() {
+    if (!document.getElementById('raster-toggle').checked) return;
+    
+    rasterLayer.clearLayers();
     
     const zoom = map.getZoom();
+    const bounds = map.getBounds();
     
-    if (zoom >= CONFIG.ZOOM_THRESHOLDS.DETAIL) {
-        // Zoom détaillé : afficher tous les marqueurs individuels
-        mockData.individuals.forEach(individual => {
-            const marker = L.marker([individual.lat, individual.lng])
-                .bindPopup(`
-                    <strong>${individual.name}</strong><br>
-                    Type: ${individual.type}<br>
-                    ID: ${individual.id}
-                `);
-            markersLayer.addLayer(marker);
-        });
-    } else if (zoom >= CONFIG.ZOOM_THRESHOLDS.MEDIUM) {
-        // Zoom moyen : grouper les marqueurs proches
-        const clusters = clusterNearbyMarkers(mockData.individuals, 0.01);
-        clusters.forEach(cluster => {
-            const marker = L.marker([cluster.lat, cluster.lng], {
-                icon: createClusterIcon(cluster.count)
+    // Afficher seulement si zoom élevé et dans la zone Saint-Chamas
+    if (zoom >= CONFIG.ZOOM_THRESHOLDS.DETAIL && bounds.contains(CONFIG.SAINT_CHAMAS_COORDS)) {
+        
+        // Vérifier si le fichier TIF existe
+        fetch('data/saint_chamas_cadastre_1819.tif', { method: 'HEAD' })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('TIF non disponible');
+                }
+                return fetch('data/saint_chamas_cadastre_1819.tif');
+            })
+            .then(response => response.arrayBuffer())
+            .then(arrayBuffer => {
+                // Nécessite la bibliothèque georaster
+                if (typeof parseGeoraster !== 'undefined') {
+                    return parseGeoraster(arrayBuffer);
+                } else {
+                    throw new Error('Bibliothèque georaster non disponible');
+                }
+            })
+            .then(georaster => {
+                // Nécessite la bibliothèque georaster-layer-for-leaflet
+                if (typeof GeoRasterLayer !== 'undefined') {
+                    const layer = new GeoRasterLayer({
+                        georaster: georaster,
+                        opacity: 0.7
+                    });
+                    rasterLayer.addLayer(layer);
+                } else {
+                    throw new Error('Bibliothèque GeoRasterLayer non disponible');
+                }
+            })
+            .catch(error => {
+                console.log('TIF non disponible, utilisation du JPEG');
+                loadJpegCadastre();
             });
-            
-            marker.on('click', () => showClusterPopup(cluster));
-            markersLayer.addLayer(marker);
-        });
-    } else {
-        // Zoom global : grouper par région
-        const regionalClusters = clusterByRegion(mockData.individuals);
-        regionalClusters.forEach(cluster => {
-            const marker = L.marker([cluster.lat, cluster.lng], {
-                icon: createClusterIcon(cluster.count, 'large')
-            });
-            
-            marker.on('click', () => showClusterPopup(cluster));
-            markersLayer.addLayer(marker);
-        });
     }
 }
 
-// Clustering des marqueurs proches
-function clusterNearbyMarkers(individuals, threshold) {
-    const clusters = [];
-    const processed = new Set();
+// Chargement JPEG avec coordonnées
+function loadJpegCadastre() {
+    // Coordonnées approximatives pour Saint-Chamas
+    const imageBounds = [
+        [43.540, 5.030],  // Sud-Ouest
+        [43.555, 5.045]   // Nord-Est
+    ];
     
-    individuals.forEach((individual, index) => {
-        if (processed.has(index)) return;
-        
-        const cluster = {
-            lat: individual.lat,
-            lng: individual.lng,
-            count: 1,
-            individuals: [individual]
-        };
-        
-        processed.add(index);
-        
-        // Trouver les individus proches
-        individuals.forEach((other, otherIndex) => {
-            if (processed.has(otherIndex)) return;
-            
-            const distance = Math.sqrt(
-                Math.pow(individual.lat - other.lat, 2) + 
-                Math.pow(individual.lng - other.lng, 2)
-            );
-            
-            if (distance < threshold) {
-                cluster.individuals.push(other);
-                cluster.count++;
-                processed.add(otherIndex);
-            }
-        });
-        
-        clusters.push(cluster);
+    const imageOverlay = L.imageOverlay('data/saint_chamas_cadastre_1819.jpg', imageBounds, {
+        opacity: 0.7,
+        interactive: true
     });
     
-    return clusters;
-}
-
-// Clustering par région
-function clusterByRegion(individuals) {
-    const regions = {
-        'Provence': { lat: 43.5, lng: 5.0, individuals: [] },
-        'Île-de-France': { lat: 48.8, lng: 2.3, individuals: [] },
-        'Rhône-Alpes': { lat: 45.7, lng: 4.8, individuals: [] },
-        'Pays de la Loire': { lat: 47.2, lng: -1.5, individuals: [] },
-        'Normandie': { lat: 49.4, lng: 0.1, individuals: [] }
-    };
-    
-    individuals.forEach(individual => {
-        // Logique simple pour assigner à une région
-        let closestRegion = 'Provence';
-        let minDistance = Infinity;
-        
-        Object.entries(regions).forEach(([name, region]) => {
-            const distance = Math.sqrt(
-                Math.pow(individual.lat - region.lat, 2) + 
-                Math.pow(individual.lng - region.lng, 2)
-            );
-            
-            if (distance < minDistance) {
-                minDistance = distance;
-                closestRegion = name;
-            }
-        });
-        
-        regions[closestRegion].individuals.push(individual);
-    });
-    
-    return Object.values(regions)
-        .filter(region => region.individuals.length > 0)
-        .map(region => ({
-            lat: region.lat,
-            lng: region.lng,
-            count: region.individuals.length,
-            individuals: region.individuals,
-            isRegional: true
-        }));
-}
-
-// Création d'icônes pour les clusters
-function createClusterIcon(count, size = 'auto') {
-    let iconSize, className;
-    
-    if (size === 'auto') {
-        if (count < 5) {
-            iconSize = [30, 30];
-            className = 'marker-cluster small';
-        } else if (count < 10) {
-            iconSize = [40, 40];
-            className = 'marker-cluster medium';
-        } else {
-            iconSize = [50, 50];
-            className = 'marker-cluster large';
-        }
-    } else {
-        iconSize = size === 'large' ? [50, 50] : [30, 30];
-        className = `marker-cluster ${size}`;
-    }
-    
-    return L.divIcon({
-        html: `<div class="${className}">${count}</div>`,
-        iconSize: iconSize,
-        className: 'marker-cluster-container'
-    });
+    rasterLayer.addLayer(imageOverlay);
 }
 
 // Affichage du popup de cluster
@@ -442,7 +275,7 @@ function showClusterPopup(features) {
     }).join('');
     
     document.getElementById('cluster-count').textContent = 
-        `${features.length} marin${features.length > 1 ? 's' : ''} dans cette zone`;
+        `${features.length} Seafarer${features.length > 1 ? 's' : ''} in this area`;
     
     document.getElementById('cluster-details').innerHTML = detailsHtml;
     
@@ -464,8 +297,22 @@ function handleZoomChange() {
 // Mise à jour de la visibilité des couches
 function updateLayerVisibility() {
     const zoom = map.getZoom();
-    const bounds = map.getBounds();}
+    const bounds = map.getBounds();
     
+    // Rafraîchir les couches actives
+    if (document.getElementById('markers-toggle').checked) {
+        displayMarkers();
+    }
+    
+    if (document.getElementById('raster-toggle').checked) {
+        loadCadastreLayer();
+    }
+    
+    if (document.getElementById('buildings-toggle').checked) {
+        displayBuildings();
+    }
+}
+
 // Basculement des couches
 function toggleMarkers() {
     const isChecked = document.getElementById('markers-toggle').checked;
@@ -503,7 +350,7 @@ function toggleBuildings() {
     updateZoomInfo();
 }
 
-// Focus sur Saint-Chamas (version corrigée)
+// Focus sur Saint-Chamas
 function focusOnSaintChamas() {
     map.setView(CONFIG.SAINT_CHAMAS_COORDS, CONFIG.ZOOM_THRESHOLDS.DETAIL);
     
@@ -518,121 +365,24 @@ function focusOnSaintChamas() {
     }, 1000);
 }
 
-// Chargement de la couche raster
-function loadRasterLayer() {
-    rasterLayer.clearLayers();
-    
-    // Exemple de couche raster pour Saint-Chamas
-    const rasterBounds = [
-        [43.540, 5.030],
-        [43.555, 5.045]
-    ];
-    
-    // Simulation d'une couche raster
-    const rasterOverlay = L.rectangle(rasterBounds, {
-        color: 'blue',
-        weight: 2,
-        opacity: 0.7,
-        fillOpacity: 0.3
-    }).bindPopup('Couche raster - Zone d\'étude');
-    
-    rasterLayer.addLayer(rasterOverlay);
-}
-
-// Chargement de la couche bâtiments
-function loadBuildingsLayer() {
-    buildingsLayer.clearLayers();
-    
-    // Simulation de bâtiments pour Saint-Chamas
-    const buildings = [
-        { lat: 43.5471, lng: 5.0378, name: "Église" },
-        { lat: 43.5475, lng: 5.0385, name: "Mairie" },
-        { lat: 43.5465, lng: 5.0370, name: "Port" },
-        { lat: 43.5480, lng: 5.0390, name: "Marché" }
-    ];
-    
-    buildings.forEach(building => {
-        const buildingPolygon = L.polygon([
-            [building.lat - 0.0005, building.lng - 0.0005],
-            [building.lat + 0.0005, building.lng - 0.0005],
-            [building.lat + 0.0005, building.lng + 0.0005],
-            [building.lat - 0.0005, building.lng + 0.0005]
-        ], {
-            color: 'red',
-            weight: 2,
-            opacity: 0.8,
-            fillOpacity: 0.5
-        }).bindPopup(`Bâtiment: ${building.name}`);
-        
-        buildingsLayer.addLayer(buildingPolygon);
-    });
-}
-
-// Basculement des couches
-function toggleMarkers() {
-    const isChecked = document.getElementById('markers-toggle').checked;
-    
-    if (isChecked) {
-        map.addLayer(markersLayer);
-        loadMarkers();
-    } else {
-        map.removeLayer(markersLayer);
-    }
-    
-    updateZoomInfo();
-}
-
-function toggleRaster() {
-    const isChecked = document.getElementById('raster-toggle').checked;
-    
-    if (isChecked) {
-        map.addLayer(rasterLayer);
-        updateLayerVisibility();
-    } else {
-        map.removeLayer(rasterLayer);
-    }
-    
-    updateZoomInfo();
-}
-
-function toggleBuildings() {
-    const isChecked = document.getElementById('buildings-toggle').checked;
-    
-    if (isChecked) {
-        map.addLayer(buildingsLayer);
-        updateLayerVisibility();
-    } else {
-        map.removeLayer(buildingsLayer);
-    }
-    
-    updateZoomInfo();
-}
-
-// Focus sur Saint-Chamas
-function focusOnSaintChamas() {
-    map.setView(CONFIG.SAINT_CHAMAS_COORDS, CONFIG.ZOOM_THRESHOLDS.DETAIL);
-    
-    // Activer automatiquement les couches détaillées
-    setTimeout(() => {
-        document.getElementById('raster-toggle').checked = true;
-        document.getElementById('buildings-toggle').checked = true;
-        
-        toggleRaster();
-        toggleBuildings();
-    }, 500);
-}
-
 // Mise à jour des informations de zoom
 function updateZoomInfo() {
-    document.getElementById('zoom-level').textContent = `Zoom: ${map.getZoom()}`;
+    const zoomElement = document.getElementById('zoom-level');
+    const layersElement = document.getElementById('visible-layers');
     
-    const activeLayers = [];
-    if (map.hasLayer(markersLayer)) activeLayers.push('Marqueurs');
-    if (map.hasLayer(rasterLayer)) activeLayers.push('Raster');
-    if (map.hasLayer(buildingsLayer)) activeLayers.push('Bâtiments');
+    if (zoomElement) {
+        zoomElement.textContent = `Zoom: ${map.getZoom()}`;
+    }
     
-    document.getElementById('visible-layers').textContent = 
-        `Couches: ${activeLayers.join(', ') || 'Aucune'}`;
+    if (layersElement) {
+        const activeLayers = [];
+        if (map.hasLayer(markersLayer)) activeLayers.push('Seafarers');
+        if (map.hasLayer(rasterLayer)) activeLayers.push('Cadastre');
+        if (map.hasLayer(buildingsLayer)) activeLayers.push('Buildings');
+        
+        layersElement.textContent = 
+            `Layers: ${activeLayers.join(', ') || 'None'}`;
+    }
 }
 
 // Mise à jour des couches visibles
@@ -640,6 +390,54 @@ function updateVisibleLayers() {
     updateLayerVisibility();
     updateZoomInfo();
 }
+
+// Configuration des événements
+function setupEventListeners() {
+    // Vérifier que les éléments existent avant d'ajouter les événements
+    const markersToggle = document.getElementById('markers-toggle');
+    const rasterToggle = document.getElementById('raster-toggle');
+    const buildingsToggle = document.getElementById('buildings-toggle');
+    const saintChamasBtn = document.getElementById('saint-chamas-btn');
+    const closePopup = document.querySelector('.close-popup');
+    
+    if (markersToggle) {
+        markersToggle.addEventListener('change', toggleMarkers);
+    }
+    
+    if (rasterToggle) {
+        rasterToggle.addEventListener('change', toggleRaster);
+    }
+    
+    if (buildingsToggle) {
+        buildingsToggle.addEventListener('change', toggleBuildings);
+    }
+    
+    if (saintChamasBtn) {
+        saintChamasBtn.addEventListener('click', focusOnSaintChamas);
+    }
+    
+    if (closePopup) {
+        closePopup.addEventListener('click', closeClusterPopup);
+    }
+    
+    // Fermeture du popup en cliquant à l'extérieur
+    if (clusterPopup) {
+        clusterPopup.addEventListener('click', function(e) {
+            if (e.target === clusterPopup) {
+                closeClusterPopup();
+            }
+        });
+    }
+}
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', function() {
+    initializeMap();
+    setupEventListeners();
+    loadMarinsData();
+    loadBuildingsData();
+    updateZoomInfo();
+});
 
 // Gestion des erreurs
 window.onerror = function(msg, url, lineNo, columnNo, error) {
